@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect} from 'react';
 import styled from 'styled-components';
 import { Slider, TextField, Button, CircularProgress } from '@mui/material';
-
 
 const CountdownContainer = styled.div`
     text-align: center;
@@ -19,30 +18,38 @@ const ResultContainer = styled.div`
 `;
 
 const Countdown = () => {
+    // Состояния для минут, секунд, оставшегося времени и статуса таймера
     const [initialMinutes, setInitialMinutes] = useState(0);
     const [initialSeconds, setInitialSeconds] = useState(0);
     const [remainingTime, setRemainingTime] = useState(initialMinutes * 60 + initialSeconds);
     const [isRunning, setIsRunning] = useState(false);
 
-    // const audioRef = new Audio ("https://zvukitop.com/wp-content/uploads/2021/04/kogda-vremya-vyshlo-frfrc.mp3")
-
     useEffect(() => {
-        if (isRunning && remainingTime >= 0) {
+        // Эффект, который выполняется при изменении состояний isRunning и remainingTime
+        if (isRunning) {
+            if(remainingTime === 0){
+                setIsRunning(false)
+                return 
+            }
+            
+            // Создание интервала для уменьшения оставшегося времени каждую секунду
             const intervalId = setInterval(() => {
                 setRemainingTime(prevTime => prevTime - 1);
             }, 1000);
 
+            // Возвращение функции очистки интервала для уборки при размонтировании компонента
             return () => clearInterval(intervalId);
-        }
+        } 
     }, [isRunning, remainingTime]);
 
+    // Обработчики изменения значений слайдера, минут и секунд
     // @ts-ignore
     const handleSliderChange = (_, newValue) => {
         setInitialMinutes(Math.floor(newValue / 60));
         setInitialSeconds(newValue % 60);
         setRemainingTime(newValue);
     };
-    // @ts-ignore
+      // @ts-ignore
     const handleMinutesChange = e => {
         const minutes = parseInt(e.target.value);
         if (!isNaN(minutes) && minutes <= 720) {
@@ -59,6 +66,7 @@ const Countdown = () => {
         }
     };
 
+    // Обработчики кнопок "Start/Pause" и "Reset"
     const handleStartPause = () => {
         setIsRunning(prev => !prev);
     };
@@ -68,6 +76,7 @@ const Countdown = () => {
         setRemainingTime(initialMinutes * 60 + initialSeconds);
     };
 
+    // Функция для форматирования оставшегося времени в формат "мм:сс"
     const formatTime = () => {
         return `${Math.floor(remainingTime / 60)
             .toString()
@@ -76,7 +85,9 @@ const Countdown = () => {
 
     return (
         <CountdownContainer>
+            {/* Контейнер для отображения времени и элементов управления */}
             <TimeInputContainer>
+                {/* Слайдер для выбора времени */}
                 <Slider
                     min={0}
                     max={60 * 60}
@@ -85,6 +96,7 @@ const Countdown = () => {
                     onChange={handleSliderChange}
                     disabled={isRunning}
                 />
+                {/* Поле ввода для минут */}
                 <TextField
                     type='number'
                     label='Minutes'
@@ -92,6 +104,7 @@ const Countdown = () => {
                     onChange={handleMinutesChange}
                     disabled={isRunning}
                 />
+                {/* Поле ввода для секунд */}
                 <TextField
                     type='number'
                     label='Seconds'
@@ -100,24 +113,22 @@ const Countdown = () => {
                     disabled={isRunning}
                 />
             </TimeInputContainer>
+            {/* Контейнер для отображения оставшегося времени и прогресса */}
             <ResultContainer>
                 <p>Time remaining: {formatTime()}</p>
+                {/* Круговой индикатор прогресса */}
                 <CircularProgress
                     variant='determinate'
                     value={(1 - remainingTime / (initialMinutes * 60 + initialSeconds)) * 100}
                 />
             </ResultContainer>
-            <Button variant='outlined' onClick={handleStartPause} disabled={remainingTime === 0}>
+            {/* Кнопки "Start/Pause" и "Reset" */}
+            <Button variant='outlined' onClick={handleStartPause}>
                 {isRunning ? 'Pause' : 'Start'}
             </Button>
-            <Button variant='outlined' onClick={handleReset} disabled={remainingTime === 0}>
+            <Button variant='outlined' onClick={handleReset}>
                 Reset
             </Button>
-
-            {/* <audio ref={audioRef} controls>
-                <source src='../1580.mp3' type='audio/mpeg' />
-                <track kind='captions' label='No captions available' />
-            </audio> */}
         </CountdownContainer>
     );
 };
